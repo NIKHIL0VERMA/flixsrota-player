@@ -1,7 +1,7 @@
 {
   "name": "@flixsrota/player",
   "version": "0.1.0",
-  "description": "A distraction free(without recommendations, share buttons, or channel overlays) implementation of youtube video player. Future versions will integrate with the upcoming Flixsrota Video Server, enabling adaptive streaming",
+  "description": "A Youtube player for react-native and expo; distraction free(without recommendations, share buttons, or channel overlays). Future versions will integrate with the upcoming Flixsrota Video Server, enabling adaptive streaming",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
@@ -32,7 +32,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace @flixsrota/player-example",
+    "example": "yarn workspace example",
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -41,9 +41,21 @@
     "release": "release-it --only-version"
   },
   "keywords": [
+    "react",
     "react-native",
-    "ios",
-    "android"
+    "video",
+    "video-player",
+    "media",
+    "media-player",
+    "youtube",
+    "youtube-player",
+    "yt",
+    "player",
+    "streaming",
+    "custom-player",
+    "playback",
+    "web-video",
+    "iframe"
   ],
   "repository": {
     "type": "git",
@@ -64,27 +76,42 @@
     "@eslint/eslintrc": "^3.3.0",
     "@eslint/js": "^9.22.0",
     "@evilmartians/lefthook": "^1.5.0",
+    "@react-native-community/slider": "^4.2.3",
+    "@react-native-vector-icons/ionicons": "12.3.0",
     "@react-native/babel-preset": "0.78.2",
     "@react-native/eslint-config": "^0.78.0",
+    "@react-navigation/native": "6.1.9",
     "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
     "@types/react": "^19.0.12",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
     "commitlint": "^19.6.1",
     "del-cli": "^5.1.0",
-    "eslint": "^9.22.0",
+    "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-jest": "^29.0.1",
     "eslint-plugin-prettier": "^5.2.3",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
     "react": "19.0.0",
     "react-native": "0.79.6",
-    "react-native-builder-bob": "^0.40.13",
+    "react-native-builder-bob": "^0.39.0",
+    "react-native-webview": "13.6.4",
     "release-it": "^17.10.0",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
+    "@react-native-community/slider": "^4.2.3",
+    "@react-native-vector-icons/ionicons": "12.3.0",
+    "@react-navigation/native": ">=6.0.0",
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-webview": ">=13.0.0"
+  },
+  "optionalDependencies": {
+    "expo-screen-orientation": "^5.0.1",
+    "react-native-orientation-locker": "^1.7.0"
   },
   "workspaces": [
     "example"

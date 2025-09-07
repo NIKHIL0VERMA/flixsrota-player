@@ -4,14 +4,11 @@ A distraction free(without recommendations, share buttons, or channel overlays) 
 
 ## Installation
 
-
 ```sh
 npm install @flixsrota/player
 ```
 
-
 ## Usage
-
 
 ```js
 import { multiply } from '@flixsrota/player';
@@ -20,7 +17,6 @@ import { multiply } from '@flixsrota/player';
 
 const result = await multiply(3, 7);
 ```
-
 
 ## Contributing
 
