@@ -1,5 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
-import { useRef, useState } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import {
   PlayerEvents,
   type PlayerHandle,
@@ -11,6 +10,7 @@ import DefaultControls from '../ui/DefaultControls';
 import { useFullscreenBack } from '../hooks/useFullscreenBack';
 import { useOrientation } from '../hooks/useOrientation';
 import CrossPlatformPlayer from '../ui/CrossPlatformPlayer';
+import { useSafeNavigation } from '../hooks/useSafeNavigation';
 
 /**
  * PlayerView wraps the WebView, manages player state,
@@ -33,7 +33,7 @@ export default function PlayerView({
   });
 
   const playerRef = useRef<PlayerHandle>(null);
-  const navigation = useNavigation();
+  const navigation = useSafeNavigation();
 
   const sendCommand = (cmd: string | object) => {
     playerRef.current?.postMessage?.(cmd);
@@ -43,12 +43,14 @@ export default function PlayerView({
   useFullscreenBack(playerState.fullscreen);
 
   // Orientation listener
-  useOrientation(
-    (fullscreen) => {
+  const handleOrientation = useCallback(
+    (fullscreen: boolean) => {
       setPlayerState((s) => ({ ...s, fullscreen }));
     },
-    { navigation }
+    [] // stable identity
   );
+
+  useOrientation(handleOrientation, { navigation });
 
   return (
     <ControlsComponent sendCommand={sendCommand} playerState={playerState}>

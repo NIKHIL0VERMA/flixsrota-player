@@ -38,22 +38,178 @@ export const youtubeHTML = (videoId: string) => `
       </div>
     </div>
     <script>
-      var player, gate, gateMsg, gateSpinner;
-      var ready=false, loaded=false, errored=false;
+      var tag = document.createElement("script");
+      tag.id = "iframe-api";
+      tag.src = "https://www.youtube.com/iframe_api";
+      var firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+      var player;
+      var gate, gateMsg, gateSpinner;
+      var ready = false,
+        loaded = false,
+        errored = false;
+      var loadCheckInterval = null,
+        loadTimeout = null;
+
       function sendMessageToRN(e) {
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(e));
+        window.ReactNativeWebView &&
+          window.ReactNativeWebView.postMessage(JSON.stringify(e));
       }
-      function hideGate(){ gate && gate.classList.add('hidden'); }
-      function onGateClick(){ if(ready&&loaded&&!errored){ hideGate(); try{ player.playVideo(); }catch(_){} } }
-      document.addEventListener('DOMContentLoaded', function(){ gate=document.getElementById('gate'); gateMsg=document.getElementById('gate-msg'); gateSpinner=document.getElementById('gate-spinner'); if(gate) gate.addEventListener('click',onGateClick); });
-      var tag=document.createElement('script'); tag.src="https://www.youtube.com/iframe_api"; document.body.appendChild(tag);
-      function onYouTubeIframeAPIReady(){
-        player=new YT.Player('flixsrota-player',{events:{onReady:onReady,onError:onError,onStateChange:onStateChange}});
+
+      function setGateMessage(text, showSpinner) {
+        if (gateMsg) gateMsg.textContent = text;
+        if (gateSpinner) gateSpinner.style.display = showSpinner ? "block" : "none";
       }
-      function onError(e){ errored=true; sendMessageToRN({eventType:'playerError',data:e.data}); }
-      function onReady(){ ready=true; sendMessageToRN({eventType:'playerReady'}); setInterval(()=>{ if(player&&player.getCurrentTime){ sendMessageToRN({eventType:'timeUpdate',currentTime:player.getCurrentTime(),duration:player.getDuration()}); }},1000); }
-      function onStateChange(e){ sendMessageToRN({eventType:'playerStateChange',data:e.data}); }
-      document.addEventListener('message',function(ev){ try{ var msg=JSON.parse(ev.data); switch(msg.command){ case 'playVideo':player.playVideo();break; case 'pauseVideo':player.pauseVideo();break; case 'muteVideo':player.mute();sendMessageToRN({eventType:'muteChange',data:true});break; case 'unMuteVideo':player.unMute();sendMessageToRN({eventType:'muteChange',data:false});break; case 'seekTo': if(typeof msg.seconds==='number'){player.seekTo(msg.seconds,true);} break; case 'toggleFullScreen':sendMessageToRN({eventType:'fullScreenChange'});break; case 'dismissGate':hideGate();break; }}catch(e){} });
+
+      function hideGate() {
+        if (gate) gate.classList.add("hidden");
+      }
+
+      function onGateClick() {
+        if (ready && loaded && !errored) {
+          hideGate();
+          try {
+            player && player.playVideo && player.playVideo();
+          } catch (_) {}
+        } else {
+          setGateMessage("Something went wrong. Try again later.", false);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        gate = document.getElementById("gate");
+        gateMsg = document.getElementById("gate-msg");
+        gateSpinner = document.getElementById("gate-spinner");
+        if (gate) gate.addEventListener("click", onGateClick);
+      });
+
+      function onYouTubeIframeAPIReady() {
+        player = new YT.Player("flixsrota-player", {
+          events: {
+            onReady: onPlayerReady,
+            onError: onPlayerError,
+            onStateChange: onPlayerStateChange,
+            onPlaybackRateChange: onPlaybackRateChange,
+            onPlaybackQualityChange: onPlaybackQualityChange,
+          },
+        });
+      }
+
+      function onPlayerError(e) {
+        errored = true;
+        setGateMessage("Something went wrong. Try again later.", false);
+        sendMessageToRN({ eventType: "playerError", data: e.data });
+      }
+
+      function onPlaybackRateChange(e) {
+        sendMessageToRN({
+          eventType: "playbackRateChange",
+          data: e.data,
+        });
+      }
+      function onPlaybackQualityChange(e) {
+        sendMessageToRN({
+          eventType: "playerQualityChange",
+          data: e.data,
+        });
+      }
+      function onPlayerReady(e) {
+        ready = true;
+        sendMessageToRN({
+          eventType: "playerReady",
+        });
+        loadCheckInterval = setInterval(function () {
+          try {
+            var d = player && player.getDuration ? player.getDuration() : 0;
+            if (d && isFinite(d) && d > 0) {
+              loaded = true;
+              clearInterval(loadCheckInterval);
+              loadCheckInterval = null;
+              setGateMessage("", false);
+            }
+          } catch (_) {}
+        }, 200);
+        setInterval(function () {
+          if (player && player.getCurrentTime && player.getDuration) {
+            var current = player.getCurrentTime();
+            var duration = player.getDuration();
+            sendMessageToRN({
+              eventType: "timeUpdate",
+              currentTime: current,
+              duration: duration,
+            });
+          }
+        }, 1000); // every 1s
+        loadTimeout = setTimeout(function () {
+          if (!loaded) {
+            errored = true;
+            setGateMessage("Something went wrong. Try again later.", false);
+          }
+        }, 8000);
+      }
+      function onPlayerStateChange(e) {
+        if (
+          e.data === YT.PlayerState.CUED ||
+          e.data === YT.PlayerState.BUFFERING ||
+          e.data === YT.PlayerState.PLAYING ||
+          e.data === YT.PlayerState.PAUSED
+        ) {
+          if (!loaded) {
+            loaded = true;
+            if (loadCheckInterval) {
+              clearInterval(loadCheckInterval);
+              loadCheckInterval = null;
+            }
+            if (loadTimeout) {
+              clearTimeout(loadTimeout);
+              loadTimeout = null;
+            }
+            setGateMessage("", false);
+          }
+        }
+        sendMessageToRN({
+          eventType: "playerStateChange",
+          data: e.data,
+        });
+      }
+      document.addEventListener("message", function (ev) {
+        var msg;
+        try {
+          msg = JSON.parse(ev.data); // always JSON now
+        } catch (e) {
+          return;
+        }
+        if (msg && typeof msg === "object") {
+          switch (msg.command) {
+            case "playVideo":
+              player.playVideo();
+              break;
+            case "pauseVideo":
+              player.pauseVideo();
+              break;
+            case "muteVideo":
+              player.mute();
+              sendMessageToRN({ eventType: "muteChange", data: true });
+              break;
+            case "unMuteVideo":
+              player.unMute();
+              sendMessageToRN({ eventType: "muteChange", data: false });
+              break;
+            case "dismissGate":
+              hideGate();
+              break;
+            case "toggleFullScreen":
+              sendMessageToRN({ eventType: "fullScreenChange" });
+              break;
+            case "seekTo":
+              if (typeof msg.seconds === "number") {
+                player.seekTo(msg.seconds, true);
+              }
+              break;
+          }
+        }
+      });
     </script>
   </body>
 </html>

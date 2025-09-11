@@ -1,20 +1,20 @@
-const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
-const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '..');
+module.exports = (async () => {
+  const expoMetroConfig = await import('@expo/metro-config');
+  const monorepoConfig = await import('react-native-monorepo-config');
 
-const config = getDefaultConfig(projectRoot);
+  const getDefaultConfig = expoMetroConfig.getDefaultConfig;
+  const withMetroConfig = monorepoConfig.withMetroConfig;
 
-config.watchFolders = [workspaceRoot];
+  const root = path.resolve(__dirname, '..');
 
-config.resolver = {
-  ...config.resolver,
-  nodeModulesPaths: [
-    path.resolve(projectRoot, 'node_modules'),
-    path.resolve(workspaceRoot, 'node_modules'),
-  ],
-  resolveRequest: undefined,
-};
+  const config = withMetroConfig(getDefaultConfig(__dirname), {
+    root,
+    dirname: __dirname,
+  });
 
-module.exports = config;
+  config.resolver.unstable_enablePackageExports = true;
+
+  return config;
+})();
