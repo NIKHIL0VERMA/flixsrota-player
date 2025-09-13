@@ -8,5 +8,9 @@ try {
 }
 
 export function useSafeNavigation() {
-  return realUseNavigation();
+  try {
+    return realUseNavigation();
+  } catch {
+    return null;
+  }
 }

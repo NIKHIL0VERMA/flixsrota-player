@@ -50,7 +50,7 @@ export default function PlayerView({
     [] // stable identity
   );
 
-  useOrientation(handleOrientation, { navigation });
+  const { setFullscreen } = useOrientation(handleOrientation, { navigation });
 
   return (
     <ControlsComponent sendCommand={sendCommand} playerState={playerState}>
@@ -81,17 +81,9 @@ export default function PlayerView({
               }));
               onTimeUpdate?.(data.currentTime || 0, data.duration || 0);
               break;
-            // case PlayerEvents.FullscreenChange:
-            //   if (!playerState.fullscreen) {
-            //     ScreenOrientation.lockAsync(
-            //       ScreenOrientation.OrientationLock.LANDSCAPE
-            //     );
-            //   } else {
-            //     ScreenOrientation.lockAsync(
-            //       ScreenOrientation.OrientationLock.DEFAULT
-            //     );
-            //   }
-            //   break;
+            case PlayerEvents.FullscreenChange:
+              setFullscreen(!playerState.fullscreen);
+              break;
             default:
               console.warn('Unhandled event from player:', data);
               break;
