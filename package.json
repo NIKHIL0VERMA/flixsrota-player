@@ -84,6 +84,7 @@
     "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
     "@types/react": "^19.0.12",
+    "@types/youtube": "^0.1.2",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
     "commitlint": "^19.6.1",
@@ -104,12 +105,12 @@
   "peerDependencies": {
     "@react-native-community/slider": "^4.2.3",
     "@react-native-vector-icons/ionicons": "12.3.0",
-    "@react-navigation/native": ">=6.0.0",
     "react": "*",
     "react-native": "*",
     "react-native-webview": ">=13.0.0"
   },
   "optionalDependencies": {
+    "@react-navigation/native": ">=6.0.0",
     "expo-screen-orientation": "^5.0.1",
     "react-native-orientation-locker": "^1.7.0"
   },

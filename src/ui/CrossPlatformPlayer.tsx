@@ -53,6 +53,7 @@ const CrossPlatformPlayer = forwardRef<PlayerHandle, PlayerViewProps>(
           <iframe
             ref={iframeRef}
             srcDoc={youtubeHTML(videoId)}
+            id="flixsrota-player"
             width="100%"
             height="100%"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture; accelerometer; gyroscope"

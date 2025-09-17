@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Platform, StatusBar, Dimensions } from 'react-native';
 
 let ExpoScreenOrientation: any = null;
@@ -6,15 +6,10 @@ let RNOrientationLocker: any = null;
 
 try {
   ExpoScreenOrientation = require('expo-screen-orientation');
-} catch {
-  // not running in expo
-}
-
+} catch {}
 try {
   RNOrientationLocker = require('react-native-orientation-locker');
-} catch {
-  // not installed
-}
+} catch {}
 
 type OrientationChangeCallback = (fullscreen: boolean) => void;
 
@@ -24,29 +19,37 @@ export function useOrientation(
 ) {
   const { navigation } = opts;
 
-  useEffect(() => {
-    const handleFullscreen = (fullscreen: boolean) => {
+  const setFullscreen = useCallback(
+    async (fullscreen: boolean) => {
       if (Platform.OS === 'web') {
         const iframe = document.getElementById(
           'flixsrota-player'
         ) as HTMLIFrameElement | null;
         if (iframe) {
           if (fullscreen) {
-            iframe.requestFullscreen?.().catch(() => {});
+            await iframe.requestFullscreen?.().catch(() => {});
           } else {
-            document.exitFullscreen?.().catch(() => {});
+            await document.exitFullscreen?.().catch(() => {});
           }
         }
       } else {
         if (ExpoScreenOrientation) {
-          ExpoScreenOrientation.lockAsync(
+          await ExpoScreenOrientation.lockAsync(
             fullscreen
               ? ExpoScreenOrientation.OrientationLock.LANDSCAPE
-              : ExpoScreenOrientation.OrientationLock.DEFAULT
+              : ExpoScreenOrientation.OrientationLock.PORTRAIT_UP
           );
+          !fullscreen &&
+            (await ExpoScreenOrientation.lockAsync(
+              ExpoScreenOrientation.OrientationLock.DEFAULT
+            )); // support auto-rotate after exiting fullscreen
         } else if (RNOrientationLocker) {
-          RNOrientationLocker.lockToLandscape?.();
-          if (!fullscreen) RNOrientationLocker.unlockAllOrientations?.();
+          if (fullscreen) {
+            RNOrientationLocker.lockToLandscape?.();
+          } else {
+            RNOrientationLocker.lockToPortrait?.();
+            RNOrientationLocker.unlockAllOrientations?.(); // support auto-rotate after exiting fullscreen
+          }
         }
 
         StatusBar.setHidden(fullscreen);
@@ -57,18 +60,21 @@ export function useOrientation(
       }
 
       onChange(fullscreen);
-    };
+    },
+    [navigation, onChange]
+  );
 
-    // Fallback orientation detection
+  useEffect(() => {
     const handler = ({ window }: { window: any }) => {
-      handleFullscreen(window.width > window.height);
+      setFullscreen(window.width > window.height && Platform.OS !== 'web');
     };
     const sub = Dimensions.addEventListener('change', handler);
 
-    // initial fire
     const { width, height } = Dimensions.get('window');
-    handleFullscreen(width > height);
+    setFullscreen(width > height && Platform.OS !== 'web');
 
     return () => sub?.remove?.();
-  }, [navigation, onChange]);
+  }, [setFullscreen]);
+
+  return { setFullscreen };
 }

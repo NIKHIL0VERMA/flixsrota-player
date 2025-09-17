@@ -1,13 +1,6 @@
 import Slider from '@react-native-community/slider';
 import { useEffect, useRef, useCallback, useState } from 'react';
-import {
-  Animated,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { PlayerControlsProps } from '../types';
 import { formatTime } from '../utils/time';
@@ -16,8 +9,6 @@ import { IconButton } from './IconButton';
 export default function DefaultControls(props: PlayerControlsProps) {
   const [showControls, setShowControls] = useState(true);
   const controlsOpacity = useRef(new Animated.Value(1)).current;
-  const { width, height } = useWindowDimensions();
-  const isLandscape = width > height;
   const [overlayText, setOverlayText] = useState<string | null>(null);
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const DOUBLE_TAP_DELAY = 250; // ms
@@ -111,18 +102,24 @@ export default function DefaultControls(props: PlayerControlsProps) {
       style={[
         styles.videoWrapper,
         styles.videoView,
-        isLandscape && styles.videoWrapperLandscape,
+        props.playerState.fullscreen && styles.videoWrapperLandscape,
       ]}
     >
       {/* Video Area */}
-      <Pressable style={styles.videoWrapper} onPress={() => handleTap()}>
+      <Pressable
+        id="ui-gesture-view"
+        style={styles.videoWrapper}
+        onPress={() => handleTap()}
+      >
         {props.children}
         {/* Double tap areas */}
         <Pressable
+          id="ui-gesture-left"
           style={[styles.doubleTapArea, styles.doubleTapLeft]}
           onPress={() => handleTap('backward')}
         />
         <Pressable
+          id="ui-gesture-right"
           style={[styles.doubleTapArea, styles.doubleTapRight]}
           onPress={() => handleTap('forward')}
         />
@@ -177,6 +174,7 @@ export default function DefaultControls(props: PlayerControlsProps) {
 
             {/* Seek Back */}
             <IconButton
+              style={styles.space}
               onPress={() =>
                 props.sendCommand({
                   command: 'seekTo',
@@ -188,6 +186,7 @@ export default function DefaultControls(props: PlayerControlsProps) {
 
             {/* Seek Forward */}
             <IconButton
+              style={styles.space}
               onPress={() =>
                 props.sendCommand({
                   command: 'seekTo',
@@ -199,6 +198,7 @@ export default function DefaultControls(props: PlayerControlsProps) {
 
             {/* Mute / Unmute */}
             <IconButton
+              style={styles.space}
               onPress={() =>
                 props.sendCommand(
                   props.playerState.muted ? 'unMuteVideo' : 'muteVideo'
@@ -257,9 +257,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   controls: {
-    position: 'relative',
-    bottom: 50,
-    width: '92%',
+    position: 'absolute',
+    bottom: 5,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 10,
+    width: '100%',
+    alignSelf: 'center',
   },
   timeContainer: {
     flexDirection: 'row',
@@ -269,6 +273,9 @@ const styles = StyleSheet.create({
   time: {
     color: '#fff',
     fontSize: 12,
+  },
+  space: {
+    marginLeft: 12,
   },
   buttons: {
     flexDirection: 'row',
