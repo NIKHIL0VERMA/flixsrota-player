@@ -1,6 +1,6 @@
 {
   "name": "@flixsrota/player",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Youtube player for react-native and expo; distraction free(without recommendations, share buttons, or channel overlays). Future versions will integrate with the upcoming Flixsrota Video Server, enabling adaptive streaming",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
@@ -68,7 +68,7 @@
   "homepage": "https://github.com/NIKHIL0VERMA/flixsrota-player#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-      "access": "public"
+    "access": "public"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.6.0",
