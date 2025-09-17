@@ -78,6 +78,7 @@ export default function PlayerView({
               setPlayerState((s) => ({
                 ...s,
                 currentTime: data.currentTime || 0,
+                duration: data.duration || 0,
               }));
               onTimeUpdate?.(data.currentTime || 0, data.duration || 0);
               break;
