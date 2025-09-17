@@ -23,7 +23,7 @@ yarn
 
 The [example app](/example/) demonstrates usage of the library. You need to run it to test any changes you make.
 
-It is configured to use the local version of the library, so any changes you make to the library's source code will be reflected in the example app. Changes to the library's JavaScript code will be reflected in the example app without a rebuild, but native code changes will require a rebuild of the example app.
+It is configured to use the local version of the library, so any changes you make to the library's source code will be reflected in the example app. Changes to the library's JavaScript code will be reflected in the example app without a rebuild.
 
 You can use various commands from the root directory to work with the project.
 
@@ -44,14 +44,6 @@ To run the example app on iOS:
 ```sh
 yarn example ios
 ```
-
-To confirm that the app is running with the new architecture, you can check the Metro logs for a message like this:
-
-```sh
-Running "PlayerExample" with {"fabric":true,"initialProps":{"concurrentRoot":true},"rootTag":1}
-```
-
-Note the `"fabric":true` and `"concurrentRoot":true` properties.
 
 To run the example app on Web:
 
