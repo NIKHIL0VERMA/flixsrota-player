@@ -8,6 +8,14 @@ export enum PlayerEvents {
   FullscreenChange = 'fullScreenChange',
 }
 
+export const YTPlayerStateLabels: Record<number, string> = {
+  0: 'Ended',
+  1: 'Playing',
+  2: 'Paused',
+  3: 'Buffering',
+  4: 'Video Cued',
+};
+
 export type PlayerMessage = {
   eventType: PlayerEvents | string;
   data?: any;
