@@ -20,11 +20,15 @@ export function useFullscreenBack(isFullscreen: boolean) {
         if (ExpoOrientation) {
           // Expo projects
           ExpoOrientation.lockAsync(
+            ExpoOrientation.OrientationLock.PORTRAIT_UP
+          ).catch(() => {});
+          ExpoOrientation.lockAsync(
             ExpoOrientation.OrientationLock.DEFAULT
           ).catch(() => {});
         } else if (RNOrientation) {
           // Bare RN projects
           RNOrientation.lockToPortrait();
+          RNOrientation.unlockAllOrientations();
         }
         return true;
       }
