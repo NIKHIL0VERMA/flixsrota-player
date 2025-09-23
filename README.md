@@ -7,13 +7,19 @@ A distraction free(without recommendations, share buttons, or channel overlays) 
 
 ## 🖼️ Preview
 
-![Video 1](./assets/youtube_player.jpg)
-![Player controls](./assets/controls.jpg)
-![Skip gesture](./assets/skip_gesture.jpg)
-![Fullscreen](./assets/fullscreen_player.jpg)
-![Video 2](./assets/youtube_player2.jpg)
-![Player buffering](./assets/buffering.jpg)
-![Paused](./assets/paused.jpg)
+<p align="center">
+  <img src="./assets/youtube_player.jpg" width="200" />
+  <img src="./assets/controls.jpg" width="200" />
+  <img src="./assets/skip_gesture.jpg" width="200" />
+</p>
+<p align="center">
+  <img src="./assets/fullscreen_player.jpg" width="600" />
+</p>
+<p align="center">
+  <img src="./assets/youtube_player2.jpg" width="200" />
+  <img src="./assets/buffering.jpg" width="200" />
+  <img src="./assets/paused.jpg" width="200" />
+</p>
 
 ---
 
