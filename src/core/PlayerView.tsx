@@ -1,4 +1,5 @@
 import { useRef, useCallback, useState } from 'react';
+import { Platform } from 'react-native';
 import {
   PlayerEvents,
   type PlayerHandle,
@@ -17,6 +18,7 @@ import { useSafeNavigation } from '../hooks/useSafeNavigation';
  * and bridges messages between RN and the YouTube iframe.
  */
 export default function PlayerView({
+  bundleId,
   videoId,
   onReady,
   onStateChange,
@@ -36,6 +38,9 @@ export default function PlayerView({
   const navigation = useSafeNavigation();
 
   const sendCommand = (cmd: string | object) => {
+    if (cmd === 'toggleFullScreen' && Platform.OS === 'web') {
+      setFullscreen(!playerState.fullscreen);
+    }
     playerRef.current?.postMessage?.(cmd);
   };
 
@@ -55,6 +60,7 @@ export default function PlayerView({
   return (
     <ControlsComponent sendCommand={sendCommand} playerState={playerState}>
       <CrossPlatformPlayer
+        bundleId={bundleId}
         videoId={videoId}
         ref={playerRef}
         onMessage={(event) => {

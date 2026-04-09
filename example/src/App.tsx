@@ -31,6 +31,7 @@ export default function App() {
       {/* Player */}
       <View style={styles.playerContainer}>
         <PlayerView
+          bundleId="my.bundle.id"
           videoId={videoId}
           onReady={() => setIsReady(true)}
           onStateChange={(s: number) => setPlayerState(s)}

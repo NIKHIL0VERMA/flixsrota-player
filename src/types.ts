@@ -33,6 +33,7 @@ export type PlayerState = {
 };
 
 export type PlayerViewProps = {
+  bundleId: string;
   videoId: string;
   onReady?: () => void;
   onStateChange?: (state: number) => void;

@@ -1,6 +1,13 @@
 import Slider from '@react-native-community/slider';
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Platform,
+} from 'react-native';
 
 import type { PlayerControlsProps } from '../types';
 import { formatTime } from '../utils/time';
@@ -12,6 +19,7 @@ export default function DefaultControls(props: PlayerControlsProps) {
   const [overlayText, setOverlayText] = useState<string | null>(null);
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const DOUBLE_TAP_DELAY = 250; // ms
+  const useNativeDriver = Platform.OS !== 'web';
 
   let lastTap = 0;
   let tapTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -42,10 +50,10 @@ export default function DefaultControls(props: PlayerControlsProps) {
       Animated.timing(controlsOpacity, {
         toValue: 0,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver,
       }).start(() => setShowControls(false));
     });
-  }, [controlsOpacity]);
+  }, [controlsOpacity, useNativeDriver]);
 
   useEffect(() => {
     if (showControls) {
@@ -61,7 +69,7 @@ export default function DefaultControls(props: PlayerControlsProps) {
       Animated.timing(controlsOpacity, {
         toValue: 1,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver,
       }).start();
     });
   };
@@ -73,14 +81,14 @@ export default function DefaultControls(props: PlayerControlsProps) {
       Animated.timing(overlayAnim, {
         toValue: 1,
         duration: 400,
-        useNativeDriver: true,
+        useNativeDriver,
       }).start(() => {
         setTimeout(() => {
           overlayAnim.stopAnimation(() => {
             Animated.timing(overlayAnim, {
               toValue: 0,
               duration: 400,
-              useNativeDriver: true,
+              useNativeDriver,
             }).start(() => setOverlayText(null));
           });
         }, 400);
