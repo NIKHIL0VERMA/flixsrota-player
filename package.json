@@ -103,11 +103,20 @@
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
+    "@expo/vector-icons": "*",
     "@react-native-community/slider": "^4.2.3",
     "@react-native-vector-icons/ionicons": "12.3.0",
     "react": "*",
     "react-native": "*",
     "react-native-webview": ">=13.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@expo/vector-icons": {
+      "optional": true
+    },
+    "@react-native-vector-icons/ionicons": {
+      "optional": true
+    }
   },
   "optionalDependencies": {
     "@react-navigation/native": ">=6.0.0",

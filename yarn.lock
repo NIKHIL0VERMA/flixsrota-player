@@ -2395,6 +2395,7 @@ __metadata:
     release-it: ^17.10.0
     typescript: ^5.8.3
   peerDependencies:
+    "@expo/vector-icons": "*"
     "@react-native-community/slider": ^4.2.3
     "@react-native-vector-icons/ionicons": 12.3.0
     react: "*"
@@ -2406,6 +2407,11 @@ __metadata:
     expo-screen-orientation:
       optional: true
     react-native-orientation-locker:
+      optional: true
+  peerDependenciesMeta:
+    "@expo/vector-icons":
+      optional: true
+    "@react-native-vector-icons/ionicons":
       optional: true
   languageName: unknown
   linkType: soft

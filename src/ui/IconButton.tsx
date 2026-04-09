@@ -1,10 +1,8 @@
 import { TouchableOpacity, type StyleProp, type ViewStyle } from 'react-native';
-import Ionicons, {
-  type IoniconsIconName,
-} from '@react-native-vector-icons/ionicons';
+import { Ionicons } from './Ionicons';
 
 export type IconButtonProps = {
-  name: IoniconsIconName;
+  name: string;
   size?: number;
   color?: string;
   style?: StyleProp<ViewStyle>;
