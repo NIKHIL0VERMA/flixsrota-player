@@ -50,21 +50,20 @@ Using **yarn**:
 yarn add @flixsrota/player
 ```
 
-### 2. Install orientation support
+### 2. Install peer dependencies
 
-This library uses device orientation for fullscreen video handling.  
-Install based on your ecosystem:
+This library uses several components. Install them based on your ecosystem:
 
 #### ✅ Expo
 ```bash
-expo install expo-screen-orientation
+npx expo install @react-native-community/slider react-native-webview expo-screen-orientation @expo/vector-icons
 ```
 
 #### ✅ React Native CLI
 ```bash
-npm install react-native-orientation-locker
+npm install @react-native-community/slider react-native-webview react-native-orientation-locker @react-native-vector-icons/ionicons
 # or
-yarn add react-native-orientation-locker
+yarn add @react-native-community/slider react-native-webview react-native-orientation-locker @react-native-vector-icons/ionicons
 ```
 
 ---
