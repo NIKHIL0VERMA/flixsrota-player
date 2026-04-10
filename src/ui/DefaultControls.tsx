@@ -1,51 +1,42 @@
 import Slider from '@react-native-community/slider';
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Platform,
+} from 'react-native';
 
 import type { PlayerControlsProps } from '../types';
 import { formatTime } from '../utils/time';
 import { IconButton } from './IconButton';
 
-export default function DefaultControls(props: PlayerControlsProps) {
+export default function DefaultControls({
+  sendCommand,
+  playerState,
+  children,
+}: PlayerControlsProps) {
   const [showControls, setShowControls] = useState(true);
   const controlsOpacity = useRef(new Animated.Value(1)).current;
   const [overlayText, setOverlayText] = useState<string | null>(null);
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const DOUBLE_TAP_DELAY = 250; // ms
+  const useNativeDriver = Platform.OS !== 'web';
 
-  let lastTap = 0;
-  let tapTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  const handleTap = (direction?: 'forward' | 'backward') => {
-    const now = Date.now();
-
-    if (lastTap && now - lastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected
-      if (tapTimeout) clearTimeout(tapTimeout);
-      lastTap = 0;
-
-      if (direction) {
-        handleDoubleTap(direction);
-      }
-    } else {
-      // First tap → wait to see if another comes
-      lastTap = now;
-      tapTimeout = setTimeout(() => {
-        showControlHandler(); // single tap action
-        lastTap = 0;
-      }, DOUBLE_TAP_DELAY);
-    }
-  };
+  const lastTap = useRef(0);
+  const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hideControls = useCallback(() => {
     controlsOpacity.stopAnimation(() => {
       Animated.timing(controlsOpacity, {
         toValue: 0,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver,
       }).start(() => setShowControls(false));
     });
-  }, [controlsOpacity]);
+  }, [controlsOpacity, useNativeDriver]);
 
   useEffect(() => {
     if (showControls) {
@@ -55,74 +46,111 @@ export default function DefaultControls(props: PlayerControlsProps) {
     return () => {};
   }, [showControls, hideControls]);
 
-  const showControlHandler = () => {
+  const showControlHandler = useCallback(() => {
     controlsOpacity.stopAnimation(() => {
       setShowControls(true);
       Animated.timing(controlsOpacity, {
         toValue: 1,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver,
       }).start();
     });
-  };
+  }, [controlsOpacity, useNativeDriver]);
 
-  const showOverlay = (text: string) => {
-    setOverlayText(text);
-    overlayAnim.stopAnimation(() => {
-      overlayAnim.setValue(0);
-      Animated.timing(overlayAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start(() => {
-        setTimeout(() => {
-          overlayAnim.stopAnimation(() => {
-            Animated.timing(overlayAnim, {
-              toValue: 0,
-              duration: 400,
-              useNativeDriver: true,
-            }).start(() => setOverlayText(null));
-          });
-        }, 400);
+  const showOverlay = useCallback(
+    (text: string) => {
+      setOverlayText(text);
+      overlayAnim.stopAnimation(() => {
+        overlayAnim.setValue(0);
+        Animated.timing(overlayAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver,
+        }).start(() => {
+          setTimeout(() => {
+            overlayAnim.stopAnimation(() => {
+              Animated.timing(overlayAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver,
+              }).start(() => setOverlayText(null));
+            });
+          }, 400);
+        });
       });
-    });
-  };
+    },
+    [overlayAnim, useNativeDriver]
+  );
 
-  const handleDoubleTap = (direction: 'forward' | 'backward') => {
-    showOverlay(direction === 'forward' ? '+10s' : '-10s');
-    props.sendCommand({
-      command: 'seekTo',
-      seconds:
-        props.playerState.currentTime + (direction === 'forward' ? 10 : -10),
-    });
-  };
+  const handleDoubleTap = useCallback(
+    (direction: 'forward' | 'backward') => {
+      showOverlay(direction === 'forward' ? '+10s' : '-10s');
+      sendCommand({
+        command: 'seekTo',
+        seconds: playerState.currentTime + (direction === 'forward' ? 10 : -10),
+      });
+    },
+    [sendCommand, playerState.currentTime, showOverlay]
+  );
+
+  const handleTap = useCallback(
+    (direction?: 'forward' | 'backward') => {
+      if (Platform.OS === 'web') {
+        if (!direction) {
+          showControlHandler();
+        }
+        return;
+      }
+
+      const now = Date.now();
+
+      if (lastTap.current && now - lastTap.current < DOUBLE_TAP_DELAY) {
+        // Double tap detected
+        if (tapTimeout.current) clearTimeout(tapTimeout.current);
+        lastTap.current = 0;
+
+        if (direction) {
+          handleDoubleTap(direction);
+        }
+      } else {
+        // First tap → wait to see if another comes
+        lastTap.current = now;
+        tapTimeout.current = setTimeout(() => {
+          showControlHandler(); // single tap action
+          lastTap.current = 0;
+        }, DOUBLE_TAP_DELAY);
+      }
+    },
+    [handleDoubleTap, showControlHandler]
+  );
 
   return (
     <View
+      id="flixsrota-player-container"
       style={[
         styles.videoWrapper,
         styles.videoView,
-        props.playerState.fullscreen && styles.videoWrapperLandscape,
+        playerState.fullscreen && styles.videoWrapperLandscape,
       ]}
     >
       {/* Video Area */}
-      <Pressable
-        id="ui-gesture-view"
-        style={styles.videoWrapper}
-        onPress={() => handleTap()}
-      >
-        {props.children}
+      <View id="ui-gesture-view" style={styles.videoWrapper}>
+        {children}
         {/* Double tap areas */}
-        <Pressable
-          id="ui-gesture-left"
-          style={[styles.doubleTapArea, styles.doubleTapLeft]}
-          onPress={() => handleTap('backward')}
-        />
-        <Pressable
-          id="ui-gesture-right"
-          style={[styles.doubleTapArea, styles.doubleTapRight]}
-          onPress={() => handleTap('forward')}
-        />
+        {Platform.OS !== 'web' && (
+          <>
+            <Pressable
+              id="ui-gesture-left"
+              style={[styles.doubleTapArea, styles.doubleTapLeft]}
+              onPress={() => handleTap('backward')}
+            />
+            <Pressable
+              id="ui-gesture-right"
+              style={[styles.doubleTapArea, styles.doubleTapRight]}
+              onPress={() => handleTap('forward')}
+            />
+          </>
+        )}
 
         {/* Overlay animation */}
         {overlayText && (
@@ -135,7 +163,7 @@ export default function DefaultControls(props: PlayerControlsProps) {
             <Text style={styles.overlayText}>{overlayText}</Text>
           </Animated.View>
         )}
-      </Pressable>
+      </View>
 
       {/* Controls */}
       {showControls && (
@@ -143,10 +171,10 @@ export default function DefaultControls(props: PlayerControlsProps) {
           <Slider
             style={styles.overlayFlex}
             minimumValue={0}
-            maximumValue={props.playerState.duration}
-            value={props.playerState.currentTime}
+            maximumValue={Math.max(playerState.duration, 0.01)}
+            value={playerState.currentTime}
             onSlidingComplete={(value: number) =>
-              props.sendCommand({ command: 'seekTo', seconds: value })
+              sendCommand({ command: 'seekTo', seconds: value })
             }
             minimumTrackTintColor="#1EB1FC"
             maximumTrackTintColor="#999"
@@ -155,8 +183,8 @@ export default function DefaultControls(props: PlayerControlsProps) {
 
           <View style={styles.timeContainer}>
             <Text style={styles.time}>
-              {formatTime(props.playerState.currentTime)} /{' '}
-              {formatTime(props.playerState.duration)}
+              {formatTime(playerState.currentTime)} /{' '}
+              {formatTime(playerState.duration)}
             </Text>
           </View>
 
@@ -165,20 +193,18 @@ export default function DefaultControls(props: PlayerControlsProps) {
             {/* Play / Pause */}
             <IconButton
               onPress={() =>
-                props.sendCommand(
-                  props.playerState.playing ? 'pauseVideo' : 'playVideo'
-                )
+                sendCommand(playerState.playing ? 'pauseVideo' : 'playVideo')
               }
-              name={props.playerState.playing ? 'pause' : 'play'}
+              name={playerState.playing ? 'pause' : 'play'}
             />
 
             {/* Seek Back */}
             <IconButton
               style={styles.space}
               onPress={() =>
-                props.sendCommand({
+                sendCommand({
                   command: 'seekTo',
-                  seconds: props.playerState.currentTime - 10,
+                  seconds: playerState.currentTime - 10,
                 })
               }
               name="play-back"
@@ -188,9 +214,9 @@ export default function DefaultControls(props: PlayerControlsProps) {
             <IconButton
               style={styles.space}
               onPress={() =>
-                props.sendCommand({
+                sendCommand({
                   command: 'seekTo',
-                  seconds: props.playerState.currentTime + 10,
+                  seconds: playerState.currentTime + 10,
                 })
               }
               name="play-forward"
@@ -200,18 +226,16 @@ export default function DefaultControls(props: PlayerControlsProps) {
             <IconButton
               style={styles.space}
               onPress={() =>
-                props.sendCommand(
-                  props.playerState.muted ? 'unMuteVideo' : 'muteVideo'
-                )
+                sendCommand(playerState.muted ? 'unMuteVideo' : 'muteVideo')
               }
-              name={props.playerState.muted ? 'volume-mute' : 'volume-medium'}
+              name={playerState.muted ? 'volume-mute' : 'volume-medium'}
             />
 
             {/* Fullscreen toggle */}
             <View style={styles.overlayFlex} />
             <IconButton
-              onPress={() => props.sendCommand('toggleFullScreen')}
-              name={props.playerState.fullscreen ? 'contract' : 'expand'}
+              onPress={() => sendCommand('toggleFullScreen')}
+              name={playerState.fullscreen ? 'contract' : 'expand'}
             />
           </View>
         </Animated.View>
@@ -228,7 +252,7 @@ const styles = StyleSheet.create({
   doubleTapRight: { right: 0 },
   overlayFlex: { flex: 1 },
   videoWrapper: {
-    width: '100%',
+    ...(Platform.OS === 'web' ? { flex: 1 } : { width: '100%' }),
     aspectRatio: 16 / 9,
     backgroundColor: '#111',
   },

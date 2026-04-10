@@ -12,7 +12,7 @@ export const youtubeHTML = (videoId: string) => `
       .provider { position:relative; width:100%; height:100%; background:black; }
       .provider iframe { position:absolute; top:50%; left:50%; width:100%; height:1000%; border:0; transform:translate(-50%,-50%); }
       .overlay { position:absolute; inset:0; background:transparent; z-index:2; }
-      .gate { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:3; cursor:pointer; }
+      .gate { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:3; cursor:pointer; background:black;}
       .gate.hidden { display:none; }
       .gate-box { display:flex; flex-direction:column; align-items:center; gap:8px; }
       .gate-msg { color:#fff; font:14px system-ui; text-align:center; }
@@ -27,7 +27,6 @@ export const youtubeHTML = (videoId: string) => `
         frameborder="0"
         allow="autoplay; fullscreen; encrypted-media; picture-in-picture; accelerometer; gyroscope"
         src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=0&controls=0&disablekb=1&enablejsapi=1"
-        allowfullscreen
       ></iframe>
       <div class="overlay"></div>
       <div class="gate" id="gate">
@@ -53,13 +52,23 @@ export const youtubeHTML = (videoId: string) => `
         loadTimeout = null;
 
       function sendMessageToRN(e) {
-        window.ReactNativeWebView &&
-          window.ReactNativeWebView.postMessage(JSON.stringify(e));
+        const msg = JSON.stringify(e);
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(msg);
+        } else {
+          // Web platform: send to parent window
+          window.parent.postMessage(msg, "*");
+        }
       }
 
       function setGateMessage(text, showSpinner) {
         if (gateMsg) gateMsg.textContent = text;
         if (gateSpinner) gateSpinner.style.display = showSpinner ? "block" : "none";
+        if (loaded && !errored && gate) {
+          gate.style.background = "transparent";
+        } else if (gate) {
+          gate.style.background = "black";
+        }
       }
 
       function hideGate() {
@@ -69,6 +78,7 @@ export const youtubeHTML = (videoId: string) => `
       function onGateClick() {
         if (ready && loaded && !errored) {
           hideGate();
+          sendMessageToRN({ eventType: "overlayClick" });
           try {
             player && player.playVideo && player.playVideo();
           } catch (_) {}
@@ -82,6 +92,24 @@ export const youtubeHTML = (videoId: string) => `
         gateMsg = document.getElementById("gate-msg");
         gateSpinner = document.getElementById("gate-spinner");
         if (gate) gate.addEventListener("click", onGateClick);
+
+        var overlay = document.querySelector(".overlay");
+        if (overlay) {
+          overlay.addEventListener("click", function () {
+            sendMessageToRN({ eventType: "overlayClick" });
+          });
+        }
+      });
+
+      document.addEventListener("keydown", function(e) {
+        sendMessageToRN({
+          eventType: "keyDown",
+          data: {
+            key: e.key,
+            code: e.code,
+            ctrlKey: e.ctrlKey
+          }
+        });
       });
 
       function onYouTubeIframeAPIReady() {
@@ -173,10 +201,10 @@ export const youtubeHTML = (videoId: string) => `
           data: e.data,
         });
       }
-      document.addEventListener("message", function (ev) {
+      function handleIncomingMessage(ev) {
         var msg;
         try {
-          msg = JSON.parse(ev.data); // always JSON now
+          msg = typeof ev.data === "string" ? JSON.parse(ev.data) : ev.data;
         } catch (e) {
           return;
         }
@@ -209,7 +237,10 @@ export const youtubeHTML = (videoId: string) => `
               break;
           }
         }
-      });
+      }
+
+      window.addEventListener("message", handleIncomingMessage);
+      document.addEventListener("message", handleIncomingMessage);
     </script>
   </body>
 </html>

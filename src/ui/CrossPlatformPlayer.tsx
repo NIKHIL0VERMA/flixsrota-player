@@ -1,7 +1,13 @@
 import { Platform, View, Text } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { youtubeHTML } from '../utils/youtube';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useMemo,
+  useEffect,
+} from 'react';
 import { type PlayerHandle } from '../types';
 let WebView: any = null;
 if (Platform.OS !== 'web') {
@@ -11,13 +17,14 @@ if (Platform.OS !== 'web') {
     console.warn(
       e,
       '\n',
-      'react-native-webview is not installed. Please run: expo install react-native-webview or npm install react-native-webview'
+      '[flixsrota-player] react-native-webview is not installed. Please run: expo install react-native-webview or npm install react-native-webview'
     );
     WebView = null;
   }
 }
 
 type PlayerViewProps = {
+  bundleId: string;
   videoId: string;
   onMessage?: (event: any) => void;
 };
@@ -29,9 +36,25 @@ type PlayerViewProps = {
  * - Error fallback if WebView not installed
  */
 const CrossPlatformPlayer = forwardRef<PlayerHandle, PlayerViewProps>(
-  ({ videoId, onMessage }, ref) => {
+  ({ bundleId, videoId, onMessage }, ref) => {
     const webviewRef = useRef<any>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const source = useMemo(
+      () => ({ html: youtubeHTML(videoId), baseUrl: `https://${bundleId}` }),
+      [videoId, bundleId]
+    );
+
+    // Listen for messages from iframe on web
+    useEffect(() => {
+      if (Platform.OS !== 'web') return;
+
+      const handleMessage = (event: MessageEvent) => {
+        // Wrap in nativeEvent.data structure expected by parseMessage
+        onMessage?.({ nativeEvent: { data: event.data } });
+      };
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }, [onMessage]);
 
     // Expose methods to parent via ref
     useImperativeHandle(ref, () => ({
@@ -40,7 +63,7 @@ const CrossPlatformPlayer = forwardRef<PlayerHandle, PlayerViewProps>(
           typeof cmd === 'string' ? { command: cmd } : cmd
         );
         if (Platform.OS === 'web' && iframeRef.current) {
-          iframeRef.current.contentWindow?.postMessage(wrapped);
+          iframeRef.current.contentWindow?.postMessage(wrapped, '*');
         } else if (webviewRef.current) {
           webviewRef.current.postMessage(wrapped);
         }
@@ -58,7 +81,6 @@ const CrossPlatformPlayer = forwardRef<PlayerHandle, PlayerViewProps>(
             height="100%"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture; accelerometer; gyroscope"
             style={styles.noBorder}
-            allowFullScreen
           />
         </View>
       );
@@ -84,7 +106,7 @@ const CrossPlatformPlayer = forwardRef<PlayerHandle, PlayerViewProps>(
         domStorageEnabled
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
-        source={{ html: youtubeHTML(videoId) }}
+        source={source}
         originWhitelist={['*']}
         onMessage={onMessage}
       />
