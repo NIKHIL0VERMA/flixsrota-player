@@ -6,6 +6,11 @@ export enum PlayerEvents {
   TimeUpdate = 'timeUpdate',
   MuteChange = 'muteChange',
   FullscreenChange = 'fullScreenChange',
+  OverlayClick = 'overlayClick',
+  PlaybackRateChange = 'playbackRateChange',
+  PlayerQualityChange = 'playerQualityChange',
+  PlayerError = 'playerError',
+  KeyDown = 'keyDown',
 }
 
 export const YTPlayerStateLabels: Record<number, string> = {
@@ -38,7 +43,6 @@ export type PlayerViewProps = {
   onReady?: () => void;
   onStateChange?: (state: number) => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
-  ControlsComponent?: React.ComponentType<PlayerControlsProps>;
 };
 
 export type PlayerControlsProps = {

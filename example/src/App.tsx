@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, TextInput, Button } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Button,
+  Platform,
+} from 'react-native';
 import { PlayerView, YTPlayerStateLabels } from '@flixsrota/player';
 import { useState } from 'react';
 
@@ -70,7 +77,10 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  playerContainer: { alignItems: 'center' },
+  playerContainer: {
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && { height: 200 }),
+  },
   inputBox: {
     flexDirection: 'row',
     padding: 8,

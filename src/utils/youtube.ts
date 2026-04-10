@@ -27,7 +27,6 @@ export const youtubeHTML = (videoId: string) => `
         frameborder="0"
         allow="autoplay; fullscreen; encrypted-media; picture-in-picture; accelerometer; gyroscope"
         src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=0&controls=0&disablekb=1&enablejsapi=1"
-        allowfullscreen
       ></iframe>
       <div class="overlay"></div>
       <div class="gate" id="gate">
@@ -65,6 +64,11 @@ export const youtubeHTML = (videoId: string) => `
       function setGateMessage(text, showSpinner) {
         if (gateMsg) gateMsg.textContent = text;
         if (gateSpinner) gateSpinner.style.display = showSpinner ? "block" : "none";
+        if (loaded && !errored && gate) {
+          gate.style.background = "transparent";
+        } else if (gate) {
+          gate.style.background = "black";
+        }
       }
 
       function hideGate() {
@@ -74,6 +78,7 @@ export const youtubeHTML = (videoId: string) => `
       function onGateClick() {
         if (ready && loaded && !errored) {
           hideGate();
+          sendMessageToRN({ eventType: "overlayClick" });
           try {
             player && player.playVideo && player.playVideo();
           } catch (_) {}
@@ -87,6 +92,24 @@ export const youtubeHTML = (videoId: string) => `
         gateMsg = document.getElementById("gate-msg");
         gateSpinner = document.getElementById("gate-spinner");
         if (gate) gate.addEventListener("click", onGateClick);
+
+        var overlay = document.querySelector(".overlay");
+        if (overlay) {
+          overlay.addEventListener("click", function () {
+            sendMessageToRN({ eventType: "overlayClick" });
+          });
+        }
+      });
+
+      document.addEventListener("keydown", function(e) {
+        sendMessageToRN({
+          eventType: "keyDown",
+          data: {
+            key: e.key,
+            code: e.code,
+            ctrlKey: e.ctrlKey
+          }
+        });
       });
 
       function onYouTubeIframeAPIReady() {
