@@ -68,6 +68,20 @@ yarn add @react-native-community/slider react-native-webview react-native-orient
 
 ---
 
+## ⌨️ Web Shortcuts
+
+When using the player on the web, you can use the following keyboard shortcuts for a seamless experience:
+
+| Shortcut | Action |
+| :--- | :--- |
+| **`Space`** | Play / Pause |
+| **`f`** | Toggle Fullscreen |
+| **`Ctrl`** + **`m`** | Mute / Unmute |
+| **`Ctrl`** + **`Arrow Right`** | Seek Forward 10s |
+| **`Ctrl`** + **`Arrow Left`** | Seek Backward 10s |
+
+---
+
 ## 🚀 Usage
 
 ```tsx
@@ -77,7 +91,7 @@ import { PlayerView } from "@flixsrota/player";
 export default function App() {
   return (
     <View style={{ flex: 1 }}>
-      <PlayerView videoId="_cMxraX_5RE" />
+      <PlayerView videoId="_cMxraX_5RE", bundleId="my.bundle.id" />
       <Text>Flixsrota Player Example</Text>
     </View>
   );
